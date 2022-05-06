@@ -13,6 +13,15 @@ MySTONWriterTest >> serialize: anObject [
 ]
 
 { #category : #private }
+MySTONWriterTest >> serialize: anObject withMirrorFactory: aMirrorFactory [
+	^ String streamContents: [ :stream |
+		MySTONWriter new 
+			on: stream;
+			mirrorFactory: aMirrorFactory;
+			nextPut: anObject ]
+]
+
+{ #category : #private }
 MySTONWriterTest >> serializeAsciiOnly: anObject [
 	^ String streamContents: [ :stream |
 		MySTONWriter new  
@@ -28,6 +37,17 @@ MySTONWriterTest >> serializeJson: anObject [
 			jsonMode: true;
 			referencePolicy: #error; 
 			on: stream; 
+			nextPut: anObject ]
+]
+
+{ #category : #private }
+MySTONWriterTest >> serializeJson: anObject withMirrorFactory: aMirrorFactory [
+	^ String streamContents: [ :stream |
+		MySTONWriter new
+			jsonMode: true;
+			referencePolicy: #error; 
+			on: stream; 
+			mirrorFactory: aMirrorFactory;
 			nextPut: anObject ]
 ]
 
@@ -371,7 +391,7 @@ MySTONWriterTest >> testReferenceSharingIgnore [
 MySTONWriterTest >> testRestrictedClassesInJsonMode [
 	self should: [ self serializeJson: 1@2 ] raise: STONWriterError.
 	self should: [ self serializeJson: #foo->100 ] raise: STONWriterError.
-	self should: [ self serializeJson: STONTestUser dummy ] raise: STONWriterError.
+	self should: [ self serializeJson: STONTestUser dummy withMirrorFactory: ReflectionMirror ] raise: STONWriterError.
 ]
 
 { #category : #tests }
@@ -439,13 +459,17 @@ MySTONWriterTest >> testURL [
 
 { #category : #tests }
 MySTONWriterTest >> testUser [
-	| user |
+	| user userWithFriends|
 	(user := STONTestUser new)
 		username: 'john@foo.com';
 		password: 'secret1'.
+	(userWithFriends := STONTestUser4 new)
+		username: 'john@bar.com';
+		password: 'secret2';
+		addFriend: user.
 	self 
-		assert: (self serialize: user)
-		equals: 'TestUser{#username:''john@foo.com'',#password:''secret1'',#enabled:true}'
+		assert: (self serialize: userWithFriends withMirrorFactory: ReflectionMirror)
+		equals:'TestUser{#username:''john@bar.com'',#password:''secret2'',#enabled:true,#friends:OrderedCollection[TestUser{#username:''john@foo.com'',#password:''secret1'',#enabled:true}]}'
 ]
 
 { #category : #tests }
@@ -464,13 +488,28 @@ MySTONWriterTest >> testUser3Nil [
 	| user |
 	user := STONTestUser3 new.
 	self 
-		assert: (self serialize: user) 
+		assert: (self serialize: user  withMirrorFactory: ReflectionMirror) 
 		equals: 'TestUser3{#username:nil,#password:nil,#enabled:true}'
+]
+
+{ #category : #tests }
+MySTONWriterTest >> testUser4 [
+	| user userWithFriends|
+	(user := STONTestUser new)
+		username: 'john@foo.com';
+		password: 'secret1'.
+	(userWithFriends := STONTestUser4 new)
+		username: 'john@bar.com';
+		password: 'secret2';
+		addFriend: user.
+	self 
+		assert: (self serialize: userWithFriends withMirrorFactory: ReflectionMirror)
+		equals:'TestUser{#username:''john@bar.com'',#password:''secret2'',#enabled:true,#friends:OrderedCollection[TestUser{#username:''john@foo.com'',#password:''secret1'',#enabled:true}]}'
 ]
 
 { #category : #tests }
 MySTONWriterTest >> testUserNil [
 	| user |
 	user := STONTestUser new.
-	self assert: (self serialize: user) equals: 'TestUser{#enabled:true}'
+	self assert: (self serialize: user  withMirrorFactory: ReflectionMirror) equals: 'TestUser{#enabled:true}'
 ]

@@ -11,7 +11,8 @@ Class {
 		'keepNewLines',
 		'referencePolicy',
 		'level',
-		'objects'
+		'objects',
+		'mirrorFactory'
 	],
 	#classVars : [
 		'STONCharacters',
@@ -62,6 +63,14 @@ MySTONWriter class >> isSimpleSymbolChar: char [
 MySTONWriter class >> on: writeStream [
 	^ self new
 		on: writeStream;
+		yourself
+]
+
+{ #category : #'instance creation' }
+MySTONWriter class >> on: writeStream withMirrorFactory: aMirrorFactory [
+	^ self new
+		on: writeStream;
+		mirrorFactory: aMirrorFactory ;
 		yourself
 ]
 
@@ -277,6 +286,11 @@ MySTONWriter >> mapElementSeparator [
 	self newlineIndent
 ]
 
+{ #category : #private }
+MySTONWriter >> mirrorFactory: aMirrorFactory [
+	mirrorFactory := aMirrorFactory 
+]
+
 { #category : #initialization }
 MySTONWriter >> newLine: string [
 	"The sequence to use when ending a line, either CR, LF or CRLF"
@@ -412,7 +426,7 @@ MySTONWriter >> writeNull [
 { #category : #writing }
 MySTONWriter >> writeObject: anObject [
 	| instanceVariableNames mirror |
-	mirror := ReflectionMirror on: anObject.
+	mirror := mirrorFactory on: anObject.
 	(instanceVariableNames := mirror mAllInstanceVariableNames ) isEmpty
 		ifTrue: [ 
 			self writeObject: anObject do: [ self encodeMap: #() ] ]
