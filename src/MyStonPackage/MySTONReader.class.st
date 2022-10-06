@@ -9,7 +9,8 @@ Class {
 		'stringStream',
 		'acceptUnknownClasses',
 		'newLine',
-		'convertNewLines'
+		'convertNewLines',
+		'mirrorFactory'
 	],
 	#category : #MyStonPackage
 }
@@ -139,6 +140,12 @@ MySTONReader >> matchChar: character [
 			self consumeWhitespace.
 			true ]
 		ifFalse: [ false ]
+]
+
+{ #category : #accessing }
+MySTONReader >> mirrorFactory: aMirrorFactory [
+
+	mirrorFactory := aMirrorFactory
 ]
 
 { #category : #'initialize-release' }
@@ -378,7 +385,7 @@ MySTONReader >> parseMapOrListRepresentation [
 { #category : #parsing }
 MySTONReader >> parseNamedInstVarsFor: anObject [
 	self parseMapDo: [ :instVarName :value |
-		(ReflectionMirror on: anObject) mInstVarNamed: instVarName asString put: value ]
+		(mirrorFactory on: anObject) mInstVarNamed: instVarName asString put: value ]
 ]
 
 { #category : #'parsing-internal' }
@@ -490,6 +497,7 @@ MySTONReader >> parseSimpleValue [
 
 { #category : #'parsing-internal' }
 MySTONReader >> parseString [
+	
 	^ self parseStringInternal
 ]
 

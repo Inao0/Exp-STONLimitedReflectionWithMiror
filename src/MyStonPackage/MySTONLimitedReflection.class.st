@@ -5,6 +5,15 @@ Class {
 }
 
 { #category : #tests }
+MySTONLimitedReflection >> materialize: string withMirrorFactory: aMirrorFactory [
+	^ MySTONReader new 
+			mirrorFactory: aMirrorFactory;
+			on: string readStream;
+			next
+		
+]
+
+{ #category : #tests }
 MySTONLimitedReflection >> serialize: anObject withMirrorFactory: aMirrorFactory [
 	^ String streamContents: [ :stream |
 		MySTONWriter new 
@@ -28,7 +37,53 @@ MySTONLimitedReflection >> testHiddenInstanceVarShouldRaiseError [
 		           newMirorFactoryWithHiddenVariablesPerClass:
 		           hiddenVariables) on: user.
 		
-	self shouldFail: (mirror mInstVarNamed: 'password')
+	self should: [mirror mInstVarNamed: 'password'] raise: InstanceVariableNotFound. 
+]
+
+{ #category : #tests }
+MySTONLimitedReflection >> testNotReadingHiddenVariable [
+
+	| user  hiddenVariables mirrorFactory |
+	(user := STONTestUser new)
+		username: 'john@foo.com';
+		password: nil.
+
+	hiddenVariables := { STONTestUser -> #(password) } asDictionary .
+	
+	mirrorFactory := (LimitedReflectionMirrorReadingUnknownVariableNoCrash 
+		           newMirorFactoryWithHiddenVariablesPerClass:
+		           hiddenVariables).
+
+	self
+		assert: (self
+				 materialize:
+				 'STONTestUser{#username:''john@foo.com'',#password:''secret1'',#other:''truc'',#enabled:true}'
+				 withMirrorFactory:
+				 mirrorFactory)
+		equals: user
+]
+
+{ #category : #tests }
+MySTONLimitedReflection >> testReadingUnknownVariable [
+
+	| user  hiddenVariables mirrorFactory |
+	(user := STONTestUser new)
+		username: 'john@foo.com';
+		password: 'secret1'.
+
+	hiddenVariables := {  } asDictionary .
+	
+	mirrorFactory := (LimitedReflectionMirrorReadingUnknownVariableNoCrash 
+		           newMirorFactoryWithHiddenVariablesPerClass:
+		           hiddenVariables).
+
+	self
+		assert: (self
+				 materialize:
+				 'STONTestUser{#username:''john@foo.com'',#password:''secret1'',#other:''truc'',#enabled:true}'
+				 withMirrorFactory:
+				 mirrorFactory)
+		equals: user
 ]
 
 { #category : #tests }
