@@ -102,6 +102,18 @@ MySTONLimitedReflection >> testUser [
 ]
 
 { #category : #tests }
+MySTONLimitedReflection >> testUserWithBoilerplateMirror [
+	| user userWithFriends|
+	(user := STONTestUser new)
+		username: 'john@foo.com';
+		password: 'secret1'.
+
+	self 
+		assert: (self serialize: user withMirrorFactory: BoilerplateMirror)
+		equals:'TestUser{#username:''john@foo.com'',#password:''secret1'',#enabled:true}'
+]
+
+{ #category : #tests }
 MySTONLimitedReflection >> testUserWithHiddenPassword [
 	| user hiddenVariables|
 	
