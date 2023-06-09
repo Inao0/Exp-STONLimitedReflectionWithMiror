@@ -1,13 +1,22 @@
 Class {
 	#name : #MySTONLimitedReflection,
 	#superclass : #TestCase,
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
+
+{ #category : #tests }
+MySTONLimitedReflection >> materialize: string withMirrorFactory: aMirrorFactory [
+	^ MySTONMirrorReader new 
+			mirrorFactory: aMirrorFactory;
+			on: string readStream;
+			next
+		
+]
 
 { #category : #tests }
 MySTONLimitedReflection >> serialize: anObject withMirrorFactory: aMirrorFactory [
 	^ String streamContents: [ :stream |
-		MySTONWriter new 
+		MySTONMirrorWriter new 
 			on: stream;
 			mirrorFactory: aMirrorFactory;
 			nextPut: anObject ]
@@ -28,7 +37,53 @@ MySTONLimitedReflection >> testHiddenInstanceVarShouldRaiseError [
 		           newMirorFactoryWithHiddenVariablesPerClass:
 		           hiddenVariables) on: user.
 		
-	self shouldFail: (mirror mInstVarNamed: 'password')
+	self should: [mirror mInstVarNamed: 'password'] raise: InstanceVariableNotFound. 
+]
+
+{ #category : #tests }
+MySTONLimitedReflection >> testNotReadingHiddenVariable [
+
+	| user  hiddenVariables mirror |
+	(user := STONTestUser new)
+		username: 'john@foo.com';
+		password: nil.
+
+	hiddenVariables := { STONTestUser -> #(password) } asDictionary .
+	
+	mirror := (LimitedReflectionMirrorReadingUnknownVariableNoCrash 
+		           newMirorFactoryWithHiddenVariablesPerClass:
+		           hiddenVariables) on: user.
+
+	self
+		assert: (self
+				 materialize:
+				 'STONTestUser{#username:''john@foo.com'',#password:''secret1'',#other:''truc'',#enabled:true}'
+				 withMirrorFactory:
+				 mirror)
+		equals: user
+]
+
+{ #category : #tests }
+MySTONLimitedReflection >> testReadingUnknownVariable [
+
+	| user  hiddenVariables mirror |
+	(user := STONTestUser new)
+		username: 'john@foo.com';
+		password: 'secret1'.
+
+	hiddenVariables := {  } asDictionary .
+	
+	mirror := (LimitedReflectionMirrorReadingUnknownVariableNoCrash 
+		           newMirorFactoryWithHiddenVariablesPerClass:
+		           hiddenVariables) on: user.
+
+	self
+		assert: (self
+				 materialize:
+				 'STONTestUser{#username:''john@foo.com'',#password:''secret1'',#other:''truc'',#enabled:true}'
+				 withMirrorFactory:
+				 mirror)
+		equals: user
 ]
 
 { #category : #tests }

@@ -1,5 +1,5 @@
 Class {
-	#name : #MySTONReader,
+	#name : #MySTONMirrorReader,
 	#superclass : #Object,
 	#instVars : [
 		'readStream',
@@ -9,42 +9,43 @@ Class {
 		'stringStream',
 		'acceptUnknownClasses',
 		'newLine',
-		'convertNewLines'
+		'convertNewLines',
+		'mirrorFactory'
 	],
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #'instance creation' }
-MySTONReader class >> on: readStream [
+MySTONMirrorReader class >> on: readStream [
 	^ self new
 		on: readStream;
 		yourself
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> acceptUnknownClasses: boolean [
+MySTONMirrorReader >> acceptUnknownClasses: boolean [
 	acceptUnknownClasses := boolean
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> allowComplexMapKeys: boolean [
+MySTONMirrorReader >> allowComplexMapKeys: boolean [
 	"This is a no-op, this used to be an option, but it is now always enabled"
 ]
 
 { #category : #testing }
-MySTONReader >> atEnd [
+MySTONMirrorReader >> atEnd [
 	^ readStream atEnd
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> close [
+MySTONMirrorReader >> close [
 	readStream ifNotNil: [
 		readStream close.
 		readStream := nil ]
 ]
 
 { #category : #private }
-MySTONReader >> consumeWhitespace [
+MySTONMirrorReader >> consumeWhitespace [
 	"Strip whitespaces from the input stream."
 
 	[ readStream atEnd not and: [ readStream peek isSeparator ] ]
@@ -52,7 +53,7 @@ MySTONReader >> consumeWhitespace [
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> convertNewLines: boolean [
+MySTONMirrorReader >> convertNewLines: boolean [
 	"When true, any newline CR, LF or CRLF read unescaped inside strings or symbols 
 	will be converted to the newline convention chosen, see #newLine:
 	The default is false, not doing any conversions."
@@ -61,7 +62,7 @@ MySTONReader >> convertNewLines: boolean [
 ]
 
 { #category : #'error handling' }
-MySTONReader >> error: aString [
+MySTONMirrorReader >> error: aString [
 	| streamPosition |
 	"Remain compatible with streams that don't understand #position"
 	streamPosition := [ readStream position ]
@@ -70,7 +71,7 @@ MySTONReader >> error: aString [
 ]
 
 { #category : #private }
-MySTONReader >> expectChar: character [
+MySTONMirrorReader >> expectChar: character [
 	"Expect character and consume input and optional whitespace at the end,
 	 throw an error otherwise."
 
@@ -79,7 +80,7 @@ MySTONReader >> expectChar: character [
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> initialize [
+MySTONMirrorReader >> initialize [
 	super initialize.
 	objects := IdentityDictionary new.
 	classes := IdentityDictionary new.
@@ -89,22 +90,22 @@ MySTONReader >> initialize [
 ]
 
 { #category : #private }
-MySTONReader >> isClassChar: char [
+MySTONMirrorReader >> isClassChar: char [
 	^ char isAlphaNumeric or: [ char = $_ ]
 ]
 
 { #category : #private }
-MySTONReader >> isClassStartChar: char [
+MySTONMirrorReader >> isClassStartChar: char [
 	^ char isLetter and: [ char isUppercase ]
 ]
 
 { #category : #private }
-MySTONReader >> isSimpleSymbolChar: char [
+MySTONMirrorReader >> isSimpleSymbolChar: char [
 	^char isLetter or: ['0123456789-_./' includes: char]
 ]
 
 { #category : #private }
-MySTONReader >> lookupClass: name [
+MySTONMirrorReader >> lookupClass: name [
 	"name is a symbol at this point"
 	Smalltalk globals 
 		at: name 
@@ -119,7 +120,7 @@ MySTONReader >> lookupClass: name [
 ]
 
 { #category : #private }
-MySTONReader >> match: string do: block [
+MySTONMirrorReader >> match: string do: block [
 	"Try to read and consume string and execute block if successful.
 	Else do nothing (but do not back up)"
 
@@ -130,7 +131,7 @@ MySTONReader >> match: string do: block [
 ]
 
 { #category : #private }
-MySTONReader >> matchChar: character [
+MySTONMirrorReader >> matchChar: character [
 	"Tries to match character, consume input and 
 	answer true if successful and consumes whitespace at the end."
 
@@ -141,15 +142,21 @@ MySTONReader >> matchChar: character [
 		ifFalse: [ false ]
 ]
 
+{ #category : #accessing }
+MySTONMirrorReader >> mirrorFactory: aMirrorFactory [
+
+	mirrorFactory := aMirrorFactory
+]
+
 { #category : #'initialize-release' }
-MySTONReader >> newLine: string [
+MySTONMirrorReader >> newLine: string [
 	"Set the newline convention to be used when converting newlines, see #convertNewLines"
 	
 	newLine := string
 ]
 
 { #category : #private }
-MySTONReader >> newReference [
+MySTONMirrorReader >> newReference [
 	| index reference |
 	index := objects size + 1.
 	reference := STONReference index: index.
@@ -158,7 +165,7 @@ MySTONReader >> newReference [
 ]
 
 { #category : #public }
-MySTONReader >> next [
+MySTONMirrorReader >> next [
 	| object |
 	self consumeWhitespace.
 	object := self parseValue.
@@ -170,19 +177,19 @@ MySTONReader >> next [
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> on: aReadStream [
+MySTONMirrorReader >> on: aReadStream [
 	readStream := aReadStream
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> optimizeForLargeStructures [
+MySTONMirrorReader >> optimizeForLargeStructures [
 	self class environment
 		at: #FLLargeIdentityDictionary
 		ifPresent: [ :identityDictionaryClass | objects := identityDictionaryClass new ]
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseCharacter [
+MySTONMirrorReader >> parseCharacter [
 	| char |
 	^ (char := readStream next) = $\
 		ifTrue: [ self parseEscapedCharacter ]
@@ -190,7 +197,7 @@ MySTONReader >> parseCharacter [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseCharacterConvertingNewLinesOn: writeStream [
+MySTONMirrorReader >> parseCharacterConvertingNewLinesOn: writeStream [
 	| char |
 	(char := readStream next) = $\
 		ifTrue: [ writeStream nextPut: self parseEscapedCharacter ]
@@ -206,7 +213,7 @@ MySTONReader >> parseCharacterConvertingNewLinesOn: writeStream [
 ]
 
 { #category : #private }
-MySTONReader >> parseCharacterHex [
+MySTONMirrorReader >> parseCharacterHex [
 	| value codePoint |
 	value := self parseCharacterHex4Value.
 	(value < 16rD800 or: [ value > 16rDBFF ])
@@ -222,7 +229,7 @@ MySTONReader >> parseCharacterHex [
 ]
 
 { #category : #private }
-MySTONReader >> parseCharacterHex4Value [
+MySTONMirrorReader >> parseCharacterHex4Value [
 	| value |
 	value := self parseCharacterHexDigit.
 	3 timesRepeat: [ 
@@ -231,7 +238,7 @@ MySTONReader >> parseCharacterHex4Value [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseCharacterHexDigit [
+MySTONMirrorReader >> parseCharacterHexDigit [
 	| digit |
 	readStream atEnd ifFalse: [ 
 		digit := readStream next asInteger.
@@ -245,7 +252,7 @@ MySTONReader >> parseCharacterHexDigit [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseClass [
+MySTONMirrorReader >> parseClass [
 	| className |
 	className := self stringStreamContents: [ :stream |
 		[ readStream atEnd not and: [ self isClassChar: readStream peek ] ] whileTrue: [ 
@@ -255,7 +262,7 @@ MySTONReader >> parseClass [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseConstantDo: block [
+MySTONMirrorReader >> parseConstantDo: block [
 	"Parse and consume either true|false|nil|null and execute block 
 	or else do nothing (but do not back up).
 	Hand written implementation to avoid the use of #position:"
@@ -278,7 +285,7 @@ MySTONReader >> parseConstantDo: block [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseEscapedCharacter [
+MySTONMirrorReader >> parseEscapedCharacter [
 	| char |
 	char := readStream next.
 	(#($' $" $/ $\) includes: char)
@@ -300,7 +307,7 @@ MySTONReader >> parseEscapedCharacter [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseList [
+MySTONMirrorReader >> parseList [
 	| reference array |
 	reference := self newReference.
 	array := STON listClass streamContents: [ :stream |
@@ -310,7 +317,7 @@ MySTONReader >> parseList [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseListDo: block [
+MySTONMirrorReader >> parseListDo: block [
 	| index |
 	self expectChar: $[.
 	(self matchChar: $]) ifTrue: [ ^ self ]. "short cut for empty lists"
@@ -324,7 +331,7 @@ MySTONReader >> parseListDo: block [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseListSingleton [
+MySTONMirrorReader >> parseListSingleton [
 	| value |
 	value := nil.
 	self parseListDo: [ :each :index |
@@ -333,7 +340,7 @@ MySTONReader >> parseListSingleton [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseMap [
+MySTONMirrorReader >> parseMap [
 	| map |
 	map := STON mapClass new.
 	self storeReference: map.
@@ -343,7 +350,7 @@ MySTONReader >> parseMap [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseMapDo: block [
+MySTONMirrorReader >> parseMapDo: block [
 	self expectChar: ${.
 	(self matchChar: $}) ifTrue: [ ^ self ]. "short cut for empty maps"
 	[ readStream atEnd ] whileFalse: [ | name value |
@@ -358,7 +365,7 @@ MySTONReader >> parseMapDo: block [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseMapOrListRepresentation [
+MySTONMirrorReader >> parseMapOrListRepresentation [
 	"Parse either a map or list to be used as a representation, not considering it as a referenceable object"
 	readStream atEnd 
 		ifFalse: [ 
@@ -376,13 +383,13 @@ MySTONReader >> parseMapOrListRepresentation [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseNamedInstVarsFor: anObject [
+MySTONMirrorReader >> parseNamedInstVarsFor: anObject [
 	self parseMapDo: [ :instVarName :value |
 		(ReflectionMirror on: anObject) mInstVarNamed: instVarName asString put: value ]
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseNumber [
+MySTONMirrorReader >> parseNumber [
 	| negated number |
 	negated := readStream peekFor: $-.
 	number := self parseNumberInteger.
@@ -403,7 +410,7 @@ MySTONReader >> parseNumber [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseNumberExponent [
+MySTONMirrorReader >> parseNumberExponent [
 	| number negated |
 	number := 0.
 	(negated := readStream peekFor: $-)
@@ -416,7 +423,7 @@ MySTONReader >> parseNumberExponent [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseNumberFraction [
+MySTONMirrorReader >> parseNumberFraction [
 	| number power |
 	number := 0.
 	power := 1.0.
@@ -427,7 +434,7 @@ MySTONReader >> parseNumberFraction [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseNumberInteger [
+MySTONMirrorReader >> parseNumberInteger [
 	| number |
 	number := 0.
 	[ readStream atEnd not and: [ readStream peek isDigit ] ] whileTrue: [ 
@@ -436,7 +443,7 @@ MySTONReader >> parseNumberInteger [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseObject [
+MySTONMirrorReader >> parseObject [
 	| targetClass reference object |
 	[
 		reference := self newReference.
@@ -457,7 +464,7 @@ MySTONReader >> parseObject [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseReference [
+MySTONMirrorReader >> parseReference [
 	| index |
 	self expectChar: $@.
 	index := self parseNumberInteger.
@@ -467,7 +474,7 @@ MySTONReader >> parseReference [
 ]
 
 { #category : #parsing }
-MySTONReader >> parseSimpleValue [
+MySTONMirrorReader >> parseSimpleValue [
 	| char |
 	readStream atEnd ifFalse: [ 
 		(self isClassStartChar: (char := readStream peek)) 
@@ -489,12 +496,13 @@ MySTONReader >> parseSimpleValue [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseString [
+MySTONMirrorReader >> parseString [
+	1 halt.
 	^ self parseStringInternal
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseStringInternal [
+MySTONMirrorReader >> parseStringInternal [
 	| result delimiter |
 	delimiter := readStream next.
 	(delimiter = $' or: [ delimiter = $" ])
@@ -513,7 +521,7 @@ MySTONReader >> parseStringInternal [
 ]
 
 { #category : #'parsing-internal' }
-MySTONReader >> parseSymbol [
+MySTONMirrorReader >> parseSymbol [
 	| string |
 	self expectChar: $#.
 	readStream peek = $'
@@ -529,14 +537,14 @@ MySTONReader >> parseSymbol [
 ]
 
 { #category : #private }
-MySTONReader >> parseTrailingSurrogateHexEscape [
+MySTONMirrorReader >> parseTrailingSurrogateHexEscape [
 	(readStream next = $\ and: [ readStream next = $u ])
 		ifTrue: [ ^ self parseCharacterHex4Value ]
 		ifFalse: [ self error: 'trailing surrogate hex escape expected' ]
 ]
 
 { #category : #parsing }
-MySTONReader >> parseValue [
+MySTONMirrorReader >> parseValue [
 	| value |
 	value := self parseSimpleValue.
 	^ (self matchChar: $:)
@@ -545,7 +553,7 @@ MySTONReader >> parseValue [
 ]
 
 { #category : #private }
-MySTONReader >> processSubObjectsOf: object [
+MySTONMirrorReader >> processSubObjectsOf: object [
 	| unresolvedReferencesCount |
 	unresolvedReferencesCount := unresolvedReferences.
 	object stonProcessSubObjects: [ :each | 
@@ -561,29 +569,29 @@ MySTONReader >> processSubObjectsOf: object [
 ]
 
 { #category : #'initialize-release' }
-MySTONReader >> reset [
+MySTONMirrorReader >> reset [
 	unresolvedReferences := 0.
 	objects removeAll
 ]
 
 { #category : #private }
-MySTONReader >> resolveReference: reference [
+MySTONMirrorReader >> resolveReference: reference [
 	unresolvedReferences := unresolvedReferences - 1.
 	^ self resolveReferenceIndex: reference index
 ]
 
 { #category : #private }
-MySTONReader >> resolveReferenceIndex: index [
+MySTONMirrorReader >> resolveReferenceIndex: index [
 	^ objects at: index
 ]
 
 { #category : #private }
-MySTONReader >> setReference: reference to: object [
+MySTONMirrorReader >> setReference: reference to: object [
 	objects at: reference index put: object
 ]
 
 { #category : #private }
-MySTONReader >> storeReference: object [
+MySTONMirrorReader >> storeReference: object [
 	| index |
 	index := objects size + 1.
 	objects at: index put: object.
@@ -591,7 +599,7 @@ MySTONReader >> storeReference: object [
 ]
 
 { #category : #private }
-MySTONReader >> stringStreamContents: block [
+MySTONMirrorReader >> stringStreamContents: block [
 	stringStream ifNil: [ 
 		stringStream := (String new: 32) writeStream ].
 	stringStream reset.

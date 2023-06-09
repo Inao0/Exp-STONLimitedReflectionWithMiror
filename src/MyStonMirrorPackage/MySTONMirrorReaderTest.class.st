@@ -1,18 +1,18 @@
 Class {
-	#name : #MySTONReaderTest,
+	#name : #MySTONMirrorReaderTest,
 	#superclass : #TestCase,
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #private }
-MySTONReaderTest >> materialize: string [
-	^ MySTONReader new 
+MySTONMirrorReaderTest >> materialize: string [
+	^ MySTONMirrorReader new 
 		on: string readStream;
 		next
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testAssociation [
+MySTONMirrorReaderTest >> testAssociation [
 	self assert: (self materialize: '''foo'':1') equals: 'foo' -> 1.
 	self assert: (self materialize: '#bar:2') equals: #bar -> 2.
 	self assert: (self materialize: '''foo bar'':#ok') equals: 'foo bar' -> #ok.
@@ -27,7 +27,7 @@ MySTONReaderTest >> testAssociation [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testBag [
+MySTONMirrorReaderTest >> testBag [
 	self 
 		assert: (self materialize: 'Bag{#a:2,#b:3}') 
 		equals: (Bag withAll: #(a a b b b)).
@@ -37,28 +37,28 @@ MySTONReaderTest >> testBag [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testBoolean [
+MySTONMirrorReaderTest >> testBoolean [
 	self assert: (self materialize: 'true') equals: true.
 	self assert: (self materialize: 'false') equals: false
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testByteArray [
+MySTONMirrorReaderTest >> testByteArray [
 	self assert: (self materialize: 'ByteArray[''010203'']') equals: #(1 2 3) asByteArray
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testCharacter [
+MySTONMirrorReaderTest >> testCharacter [
 	self assert: (self materialize: 'Character[''A'']') identicalTo: $A
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testClass [
+MySTONMirrorReaderTest >> testClass [
 	self assert: (self materialize: 'Class[#Point]') equals: Point
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testClassWithUnderscore [
+MySTONMirrorReaderTest >> testClassWithUnderscore [
 
 	| cls data reader |
 
@@ -66,7 +66,7 @@ MySTONReaderTest >> testClassWithUnderscore [
 	cls setName: #A_B_C123AnonClass.
 
 	data := STON toString: cls new.
-	reader := MySTONReader new on: data readStream.
+	reader := MySTONMirrorReader new on: data readStream.
 
 	(reader instVarNamed: #classes) 
 		at: cls name 
@@ -76,7 +76,7 @@ MySTONReaderTest >> testClassWithUnderscore [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testColor [
+MySTONMirrorReaderTest >> testColor [
 	self 
 		assert: (self materialize: 'Color[#red]')
 		equals: Color red.
@@ -89,7 +89,7 @@ MySTONReaderTest >> testColor [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testColorBackwardsCompatibility [
+MySTONMirrorReaderTest >> testColorBackwardsCompatibility [
 	"ensure the older Color representation still works"
 	self 
 		assert: (self materialize: 'Color{#rgb:1072693248}')
@@ -100,7 +100,7 @@ MySTONReaderTest >> testColorBackwardsCompatibility [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testConvertingNewLines [
+MySTONMirrorReaderTest >> testConvertingNewLines [
 	| input result output |
 	input := '''line ending with CR', String cr, 
 		'line ending with LF', String lf, 
@@ -118,7 +118,7 @@ MySTONReaderTest >> testConvertingNewLines [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDate [
+MySTONMirrorReaderTest >> testDate [
 	| date |
 	date := (Date year: 2012 month: 1 day: 1) translateToUTC.
 	self assert: (self materialize: 'Date[''2012-01-01Z'']') equals: date.
@@ -132,7 +132,7 @@ MySTONReaderTest >> testDate [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDateAndTime [
+MySTONMirrorReaderTest >> testDateAndTime [
 	| dateAndTime |
 	dateAndTime := DateAndTime
 		year: 2012
@@ -146,7 +146,7 @@ MySTONReaderTest >> testDateAndTime [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDeepStructure [
+MySTONMirrorReaderTest >> testDeepStructure [
 	| holder deepest structure writer ston reader result |
 	"Create a deep nested structure so that the deepest element is a reference back to a top level holder."
 	holder := Array with: 42.
@@ -163,7 +163,7 @@ MySTONReaderTest >> testDeepStructure [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDictionary [
+MySTONMirrorReaderTest >> testDictionary [
 	| collection |
 	collection := STON mapClass new
 		at: 1 put: 1;
@@ -174,19 +174,19 @@ MySTONReaderTest >> testDictionary [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDictionaryWithComplexKeys [
+MySTONMirrorReaderTest >> testDictionaryWithComplexKeys [
 	| collection reader |
 	collection := STON mapClass new
 		at: true put: 1;
 		at: #(foo) put: 2;
 		yourself.
 	"allowing complex map keys used to be optional, now it is always the default"
-	reader := MySTONReader on: '{true:1,[#foo]:2}' readStream.
+	reader := MySTONMirrorReader on: '{true:1,[#foo]:2}' readStream.
 	self assert: reader next equals: collection
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDictionaryWithIndirectReferenceKeys [
+MySTONMirrorReaderTest >> testDictionaryWithIndirectReferenceKeys [
 	| keysCollection dictionary ston object |
 	keysCollection := OrderedCollection streamContents: [ :out |
 		10 timesRepeat: [ out nextPut: UUID new ] ].
@@ -202,7 +202,7 @@ MySTONReaderTest >> testDictionaryWithIndirectReferenceKeys [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDictionaryWithReferenceKeys [
+MySTONMirrorReaderTest >> testDictionaryWithReferenceKeys [
 	| keysCollection dictionary ston object |
 	keysCollection := OrderedCollection streamContents: [ :out |
 		10 timesRepeat: [ out nextPut: UUID new ] ].
@@ -218,7 +218,7 @@ MySTONReaderTest >> testDictionaryWithReferenceKeys [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testDiskFile [
+MySTONMirrorReaderTest >> testDiskFile [
 	self assert: (self materialize: 'FILE[''foo.txt'']') equals: 'foo.txt' asFileReference.
 	self assert: (self materialize: 'FILE[''/tmp/foo.txt'']') equals: '/tmp/foo.txt' asFileReference.
 	self assert: (self materialize: 'FILE[''tmp/foo.txt'']') equals: 'tmp/foo.txt' asFileReference.
@@ -226,7 +226,7 @@ MySTONReaderTest >> testDiskFile [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testError [
+MySTONMirrorReaderTest >> testError [
 	#( 'foo' '{foo:}' '{foo,}' '[1,]' '+1' ']' '#' '' '  ' '	' 'nul' 'tru' 'fals' ) do: [ :each |
 		self 
 			should: [ self materialize: each ] 
@@ -234,7 +234,7 @@ MySTONReaderTest >> testError [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testFileReferenceBackwardsCompatibility [
+MySTONMirrorReaderTest >> testFileReferenceBackwardsCompatibility [
 	"we now have FILE, make sure that we support the old generic format"
 	| fs |
 	fs := STON toString: FileSystem disk.
@@ -253,7 +253,7 @@ MySTONReaderTest >> testFileReferenceBackwardsCompatibility [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testFloat [
+MySTONMirrorReaderTest >> testFloat [
 	self assert: ((self materialize: '1.5') closeTo: 1.5).
 	self assert: ((self materialize: '-1.5') closeTo: -1.5).
 	self assert: (self materialize: '0.0') isZero.
@@ -265,14 +265,14 @@ MySTONReaderTest >> testFloat [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testFraction [
+MySTONMirrorReaderTest >> testFraction [
 	self assert: (self materialize: '1/3') equals: 1/3.
 	self assert: (self materialize: '-1/3') equals: -1/3.
 	self assert: (self materialize: '100/11') equals: 100/11.
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testIdentityDictionary [
+MySTONMirrorReaderTest >> testIdentityDictionary [
 	| collection |
 	collection := IdentityDictionary new
 		at: 1 put: 1;
@@ -283,7 +283,7 @@ MySTONReaderTest >> testIdentityDictionary [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testIllegalCharacterEscapes [
+MySTONMirrorReaderTest >> testIllegalCharacterEscapes [
 	self should: [ STON fromString: '''\a''' ] raise: STONReaderError.
 	self should: [ STON fromString: '''\u''' ] raise: STONReaderError.
 	self should: [ STON fromString: '''\u00''' ] raise: STONReaderError.
@@ -292,7 +292,7 @@ MySTONReaderTest >> testIllegalCharacterEscapes [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testInteger [
+MySTONMirrorReaderTest >> testInteger [
 	self assert: (self materialize: '1') equals: 1.
 	self assert: (self materialize: '-1') equals: -1.
 	self assert: (self materialize: '0') equals: 0.
@@ -301,7 +301,7 @@ MySTONReaderTest >> testInteger [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testJsonString [
+MySTONMirrorReaderTest >> testJsonString [
 	"Allow double quotes for backwards JSON compatibility"
 
 	| string |
@@ -313,14 +313,14 @@ MySTONReaderTest >> testJsonString [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testList [
+MySTONMirrorReaderTest >> testList [
 	self assert: STON listClass equals: Array.
 	self assert: (self materialize: '[1,2,3]') equals: (STON listClass with: 1 with: 2 with: 3).
 	self assert: (self materialize: '[]') equals: STON listClass new
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testMap [
+MySTONMirrorReaderTest >> testMap [
 	self
 		assert: (self materialize: '{#foo:1}')
 		equals:
@@ -331,12 +331,12 @@ MySTONReaderTest >> testMap [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testMetaclass [
+MySTONMirrorReaderTest >> testMetaclass [
 	self assert: (self materialize: 'Metaclass[#Point]') equals: Point class
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testMimeType [
+MySTONMirrorReaderTest >> testMimeType [
 	self 
 		assert: (self materialize: 'MimeType[''application/json'']') 
 		equals: ZnMimeType applicationJson.
@@ -346,7 +346,7 @@ MySTONReaderTest >> testMimeType [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testMultiple [
+MySTONMirrorReaderTest >> testMultiple [
 	| reader |
 	reader := STON reader 
 		on: '123 -123 nil #foo true [ 0 ] false { #one : 1 }' readStream.
@@ -363,7 +363,7 @@ MySTONReaderTest >> testMultiple [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testNewSymbol [
+MySTONMirrorReaderTest >> testNewSymbol [
 	| n notASymbol shouldBeSymbol |
 	
 	"Find a name that has not yet been interned"
@@ -376,12 +376,12 @@ MySTONReaderTest >> testNewSymbol [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testNil [
+MySTONMirrorReaderTest >> testNil [
 	self assert: (self materialize: 'nil') isNil
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testNonBMPCharacterDecoding [
+MySTONMirrorReaderTest >> testNonBMPCharacterDecoding [
 	"Characters not in the Basic Multilingual Plane are encoded as a UTF-16 surrogate pair"
 
 	| string object |
@@ -391,18 +391,18 @@ MySTONReaderTest >> testNonBMPCharacterDecoding [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testNull [
+MySTONMirrorReaderTest >> testNull [
 	self assert: (self materialize: 'null') isNil
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testObject [
+MySTONMirrorReaderTest >> testObject [
 	self assert: (self materialize: 'Point[1,2]') equals: 1 @ 2.
 	self assert: (self materialize: 'Point[1.5,-0.5]') equals: 1.5 @ -0.5
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testOrderedCollection [
+MySTONMirrorReaderTest >> testOrderedCollection [
 	| collection |
 	collection := OrderedCollection with: 1 with: 2 with: 3.
 	self assert: (self materialize: 'OrderedCollection[1,2,3]') equals: collection.
@@ -410,12 +410,12 @@ MySTONReaderTest >> testOrderedCollection [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testPoint [
+MySTONMirrorReaderTest >> testPoint [
 	self assert: (self materialize: 'Point[1,2]') equals: 1 @ 2
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testReferenceCycle [
+MySTONMirrorReaderTest >> testReferenceCycle [
 	| array |
 	array := self materialize: '[1,@1]'.
 	self assert: array class equals: STON listClass.
@@ -425,7 +425,7 @@ MySTONReaderTest >> testReferenceCycle [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testReferenceSharing [
+MySTONMirrorReaderTest >> testReferenceSharing [
 	| one array |
 	one := {#one}.
 	array := self materialize: '[[#one],@2,@2]'.
@@ -435,7 +435,7 @@ MySTONReaderTest >> testReferenceSharing [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testScaledDecimal [
+MySTONMirrorReaderTest >> testScaledDecimal [
 	self assert: (self materialize: '1/3s2') equals: 1/3s2.
 	self assert: (self materialize: '-1/3s2') equals: -1/3s2.
 	self assert: (self materialize: '1/3s10') equals: 1/3s10.
@@ -443,7 +443,7 @@ MySTONReaderTest >> testScaledDecimal [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testSetWithIndirectReferenceElements [
+MySTONMirrorReaderTest >> testSetWithIndirectReferenceElements [
 	| elementsCollection set ston object |
 	elementsCollection := OrderedCollection streamContents: [ :out |
 		10 timesRepeat: [ out nextPut: UUID new ] ].
@@ -457,7 +457,7 @@ MySTONReaderTest >> testSetWithIndirectReferenceElements [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testSetWithReferenceElements [
+MySTONMirrorReaderTest >> testSetWithReferenceElements [
 	| elementsCollection set ston object |
 	elementsCollection := OrderedCollection streamContents: [ :out |
 		10 timesRepeat: [ out nextPut: UUID new ] ].
@@ -471,7 +471,7 @@ MySTONReaderTest >> testSetWithReferenceElements [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testStreaming [
+MySTONMirrorReaderTest >> testStreaming [
 	| reader |
 	reader := STON reader 
 		on: '1 2 3 4 5 6 7 8 9 10' readStream.
@@ -483,7 +483,7 @@ MySTONReaderTest >> testStreaming [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testString [
+MySTONMirrorReaderTest >> testString [
 	| string |
 	self assert: (self materialize: '''foo''') equals: 'foo'.
 	self assert: (self materialize: '''FOO''') equals: 'FOO'.
@@ -493,13 +493,13 @@ MySTONReaderTest >> testString [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testSymbol [
+MySTONMirrorReaderTest >> testSymbol [
 	self assert: (self materialize: '#''foo''') identicalTo: #foo.
 	self assert: (self materialize: '#foo') identicalTo: #foo
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testTime [
+MySTONMirrorReaderTest >> testTime [
 	| time |
 	time := Time hour: 6 minute: 30 second: 15.
 	self assert: (self materialize: 'Time[''06:30:15'']') equals: time.
@@ -508,7 +508,7 @@ MySTONReaderTest >> testTime [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testURL [
+MySTONMirrorReaderTest >> testURL [
 	self 
 		assert: (self materialize: 'URL[''https://pharo.org/files/pharo.png'']') 
 		equals: 'https://pharo.org/files/pharo.png' asUrl.
@@ -524,7 +524,7 @@ MySTONReaderTest >> testURL [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testUnknownClasses [
+MySTONMirrorReaderTest >> testUnknownClasses [
 	| input object |
 	input := 'FooBar { #foo : 1, #bar : true }'.
 	self should: [ self materialize: input ] raise: STONReaderError.
@@ -539,7 +539,7 @@ MySTONReaderTest >> testUnknownClasses [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testUser [
+MySTONMirrorReaderTest >> testUser [
 	| user |
 	(user := STONTestUser new)
 		username: 'john@foo.com';
@@ -548,7 +548,7 @@ MySTONReaderTest >> testUser [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testUser2 [
+MySTONMirrorReaderTest >> testUser2 [
 	| user |
 	(user := STONTestUser2 new)
 		username: 'john@foo.com';
@@ -557,20 +557,20 @@ MySTONReaderTest >> testUser2 [
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testWhitespace [
+MySTONMirrorReaderTest >> testWhitespace [
 	| whitespace |
 	whitespace := {Character space . Character tab . Character cr . Character lf}.
 	self assert: (self materialize: whitespace , '123') equals: 123
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testWideSymbol [
+MySTONMirrorReaderTest >> testWideSymbol [
 	self assert: (self materialize: '#''яблоко''') identicalTo: #яблоко.
 	self assert: (self materialize: '#яблоко') identicalTo: #яблоко
 ]
 
 { #category : #tests }
-MySTONReaderTest >> testZnUrlBackwardsCompatibility [
+MySTONMirrorReaderTest >> testZnUrlBackwardsCompatibility [
 	"We now have URL, make sure we still support the old format"
 	self 
 		assert: (self materialize: 'ZnUrl{#scheme:#https,#host:''pharo.org'',#segments:OrderedCollection[''files'', ''pharo.png'']}') 

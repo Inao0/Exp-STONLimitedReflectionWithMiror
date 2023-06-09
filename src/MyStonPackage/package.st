@@ -1,1 +1,1 @@
-Package { #name : #MyStonPackage }
+Package { #name : #MySTONPackage }

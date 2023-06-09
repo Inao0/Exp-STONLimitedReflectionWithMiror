@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'target'
 	],
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #'instance creation' }

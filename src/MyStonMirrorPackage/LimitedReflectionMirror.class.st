@@ -7,7 +7,7 @@ Class {
 	#classInstVars : [
 		'hiddenVariablesPerClass'
 	],
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #initialization }

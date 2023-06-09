@@ -1,5 +1,5 @@
 Class {
-	#name : #MySTONWriter,
+	#name : #MySTONMirrorWriter,
 	#superclass : #Object,
 	#instVars : [
 		'writeStream',
@@ -18,11 +18,11 @@ Class {
 		'STONCharacters',
 		'STONSimpleSymbolCharacters'
 	],
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #'class initialization' }
-MySTONWriter class >> initialize [
+MySTONMirrorWriter class >> initialize [
 	"Modification timestamp 20170131"
 	
 	self initializeSTONCharacters.
@@ -30,7 +30,7 @@ MySTONWriter class >> initialize [
 ]
 
 { #category : #'class initialization' }
-MySTONWriter class >> initializeSTONCharacters [
+MySTONMirrorWriter class >> initializeSTONCharacters [
 	| escapes |
 	STONCharacters := Array new: 127.
 	32 to: 126 do: [ :each | 
@@ -42,7 +42,7 @@ MySTONWriter class >> initializeSTONCharacters [
 ]
 
 { #category : #'class initialization' }
-MySTONWriter class >> initializeSTONSimpleSymbolCharacters [
+MySTONMirrorWriter class >> initializeSTONSimpleSymbolCharacters [
 	"STONSimpleSymbolCharacters asArray collectWithIndex: [ :each :index |
 		each isZero ifTrue: [ (index - 1) asCharacter ] ]."
 		
@@ -55,19 +55,19 @@ MySTONWriter class >> initializeSTONSimpleSymbolCharacters [
 ]
 
 { #category : #private }
-MySTONWriter class >> isSimpleSymbolChar: char [
+MySTONMirrorWriter class >> isSimpleSymbolChar: char [
 	^ 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_./' includes: char
 ]
 
 { #category : #'instance creation' }
-MySTONWriter class >> on: writeStream [
+MySTONMirrorWriter class >> on: writeStream [
 	^ self new
 		on: writeStream;
 		yourself
 ]
 
 { #category : #'instance creation' }
-MySTONWriter class >> on: writeStream withMirrorFactory: aMirrorFactory [
+MySTONMirrorWriter class >> on: writeStream withMirrorFactory: aMirrorFactory [
 	^ self new
 		on: writeStream;
 		mirrorFactory: aMirrorFactory ;
@@ -75,19 +75,19 @@ MySTONWriter class >> on: writeStream withMirrorFactory: aMirrorFactory [
 ]
 
 { #category : #initialization }
-MySTONWriter >> asciiOnly: boolean [
+MySTONMirrorWriter >> asciiOnly: boolean [
 	asciiOnly := boolean
 ]
 
 { #category : #initialization }
-MySTONWriter >> close [
+MySTONMirrorWriter >> close [
 	writeStream ifNotNil: [
 		writeStream close.
 		writeStream := nil ]
 ]
 
 { #category : #private }
-MySTONWriter >> encodeCharacter: char [
+MySTONMirrorWriter >> encodeCharacter: char [
 	| code encoding |
 	"STONCharacters contains for the lower 127 characters (codes 0 to 126) either nil (unknown), 
 	#pass (output as is, clean ASCII characters) or a full escape string"
@@ -104,7 +104,7 @@ MySTONWriter >> encodeCharacter: char [
 ]
 
 { #category : #private }
-MySTONWriter >> encodeKey: key value: value [
+MySTONMirrorWriter >> encodeKey: key value: value [
 	(jsonMode and: [ key isString not ])
 		ifTrue: [ self error: 'JSON key names in objects must be strings' ].
 	self nextPut: key.
@@ -115,7 +115,7 @@ MySTONWriter >> encodeKey: key value: value [
 ]
 
 { #category : #writing }
-MySTONWriter >> encodeList: elements [
+MySTONMirrorWriter >> encodeList: elements [
 	writeStream nextPut: $[.
 	elements isEmpty
 		ifTrue: [
@@ -131,7 +131,7 @@ MySTONWriter >> encodeList: elements [
 ]
 
 { #category : #writing }
-MySTONWriter >> encodeMap: pairs [
+MySTONMirrorWriter >> encodeMap: pairs [
 	| first |
 	first := true.
 	writeStream nextPut: ${.
@@ -151,7 +151,7 @@ MySTONWriter >> encodeMap: pairs [
 ]
 
 { #category : #private }
-MySTONWriter >> encodeString: string [
+MySTONMirrorWriter >> encodeString: string [
 	writeStream nextPut: (jsonMode ifTrue: [ $" ] ifFalse: [ $' ]).
 	keepNewLines
 		ifTrue: [ 
@@ -162,7 +162,7 @@ MySTONWriter >> encodeString: string [
 ]
 
 { #category : #private }
-MySTONWriter >> encodeStringKeepingNewLines: string [
+MySTONMirrorWriter >> encodeStringKeepingNewLines: string [
 	| input char |
 	input := string readStream.
 	[ input atEnd ]
@@ -179,12 +179,12 @@ MySTONWriter >> encodeStringKeepingNewLines: string [
 ]
 
 { #category : #'error handling' }
-MySTONWriter >> error: aString [
+MySTONMirrorWriter >> error: aString [
 	^ STONWriterError signal: aString
 ]
 
 { #category : #private }
-MySTONWriter >> escape: char with: anObject [
+MySTONMirrorWriter >> escape: char with: anObject [
 	"Instruct me to escape char with object, either a replacement string or #pass"
 	
 	"self escape: $/ with: '\/'."
@@ -195,13 +195,13 @@ MySTONWriter >> escape: char with: anObject [
 ]
 
 { #category : #private }
-MySTONWriter >> escapeUnicode4: codePoint [
+MySTONMirrorWriter >> escapeUnicode4: codePoint [
 	writeStream nextPutAll: '\u'.
 	codePoint printOn: writeStream base: 16 nDigits: 4
 ]
 
 { #category : #private }
-MySTONWriter >> escapeUnicode: codePoint [
+MySTONMirrorWriter >> escapeUnicode: codePoint [
 	codePoint <= 16rFFFF
 		ifTrue: [ self escapeUnicode4: codePoint ]
 		ifFalse: [ 
@@ -218,14 +218,14 @@ MySTONWriter >> escapeUnicode: codePoint [
 ]
 
 { #category : #private }
-MySTONWriter >> indentedDo: block [
+MySTONMirrorWriter >> indentedDo: block [
 	level := level + 1.
 	block value.
 	level := level - 1
 ]
 
 { #category : #initialization }
-MySTONWriter >> initialize [
+MySTONMirrorWriter >> initialize [
 	super initialize.
 	stonCharacters := STONCharacters.
 	prettyPrint := false.
@@ -237,7 +237,7 @@ MySTONWriter >> initialize [
 ]
 
 { #category : #private }
-MySTONWriter >> isSimpleSymbol: symbol [
+MySTONMirrorWriter >> isSimpleSymbol: symbol [
 	(symbol isEmpty or: [ symbol isWideString ]) 
 		ifTrue: [ ^ false ].
 	^ (symbol class 
@@ -247,13 +247,13 @@ MySTONWriter >> isSimpleSymbol: symbol [
 ]
 
 { #category : #accessing }
-MySTONWriter >> jsonMode [
+MySTONMirrorWriter >> jsonMode [
 
 	^ jsonMode
 ]
 
 { #category : #initialization }
-MySTONWriter >> jsonMode: boolean [
+MySTONMirrorWriter >> jsonMode: boolean [
 	(jsonMode := boolean)
 		ifTrue: [ 
 			self
@@ -266,7 +266,7 @@ MySTONWriter >> jsonMode: boolean [
 ]
 
 { #category : #initialization }
-MySTONWriter >> keepNewLines: boolean [
+MySTONMirrorWriter >> keepNewLines: boolean [
 	"If true, any newline CR, LF or CRLF inside strings or symbols will not be escaped
 	but will instead be converted to the newline convention chosen, see #newLine:
 	The default is false, where CR, LF or CRLF will be enscaped unchanged."
@@ -275,87 +275,87 @@ MySTONWriter >> keepNewLines: boolean [
 ]
 
 { #category : #private }
-MySTONWriter >> listElementSeparator [
+MySTONMirrorWriter >> listElementSeparator [
 	writeStream nextPut: $,.
 	self newlineIndent
 ]
 
 { #category : #private }
-MySTONWriter >> mapElementSeparator [
+MySTONMirrorWriter >> mapElementSeparator [
 	writeStream nextPut: $,.
 	self newlineIndent
 ]
 
 { #category : #private }
-MySTONWriter >> mirrorFactory: aMirrorFactory [
+MySTONMirrorWriter >> mirrorFactory: aMirrorFactory [
 	mirrorFactory := aMirrorFactory 
 ]
 
 { #category : #initialization }
-MySTONWriter >> newLine: string [
+MySTONMirrorWriter >> newLine: string [
 	"The sequence to use when ending a line, either CR, LF or CRLF"
 	
 	newLine := string
 ]
 
 { #category : #private }
-MySTONWriter >> newlineIndent [
+MySTONMirrorWriter >> newlineIndent [
 	prettyPrint ifTrue: [ 
 		writeStream nextPutAll: newLine.
 		level timesRepeat: [ writeStream tab ] ]
 ]
 
 { #category : #public }
-MySTONWriter >> nextPut: anObject [
+MySTONMirrorWriter >> nextPut: anObject [
 	anObject stonOn: self
 ]
 
 { #category : #'private - initialization' }
-MySTONWriter >> on: aWriteStream [
+MySTONMirrorWriter >> on: aWriteStream [
 	writeStream := aWriteStream
 ]
 
 { #category : #initialization }
-MySTONWriter >> optimizeForLargeStructures [
+MySTONMirrorWriter >> optimizeForLargeStructures [
 	self class environment
 		at: #FLLargeIdentityDictionary
 		ifPresent: [ :identityDictionaryClass | objects := identityDictionaryClass new ].
 ]
 
 { #category : #initialization }
-MySTONWriter >> prettyPrint: boolean [
+MySTONMirrorWriter >> prettyPrint: boolean [
 	prettyPrint := boolean
 ]
 
 { #category : #private }
-MySTONWriter >> prettyPrintSpace [
+MySTONMirrorWriter >> prettyPrintSpace [
 	prettyPrint ifTrue: [ writeStream space ]
 ]
 
 { #category : #initialization }
-MySTONWriter >> referencePolicy: policy [
+MySTONMirrorWriter >> referencePolicy: policy [
 	self assert: ( #(#normal #ignore #error) includes: policy ).
 	referencePolicy := policy
 ]
 
 { #category : #initialization }
-MySTONWriter >> reset [
+MySTONMirrorWriter >> reset [
 	objects removeAll
 ]
 
 { #category : #private }
-MySTONWriter >> shortListElementSeparator [
+MySTONMirrorWriter >> shortListElementSeparator [
 	writeStream nextPut: $,.
 	self prettyPrintSpace
 ]
 
 { #category : #private }
-MySTONWriter >> stonCharacters [
+MySTONMirrorWriter >> stonCharacters [
 	^ stonCharacters ifNil: [ stonCharacters := STONCharacters ]
 ]
 
 { #category : #private }
-MySTONWriter >> with: object do: block [
+MySTONMirrorWriter >> with: object do: block [
 	| index |
 	referencePolicy = #ignore 
 		ifTrue: [ ^ block value ].
@@ -371,7 +371,7 @@ MySTONWriter >> with: object do: block [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeAssociation: association [
+MySTONMirrorWriter >> writeAssociation: association [
 	jsonMode
 		ifTrue: [ self error: 'wrong object class for JSON mode' ].
 	self 
@@ -380,17 +380,17 @@ MySTONWriter >> writeAssociation: association [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeBoolean: boolean [
+MySTONMirrorWriter >> writeBoolean: boolean [
 	writeStream print: boolean
 ]
 
 { #category : #writing }
-MySTONWriter >> writeFloat: float [
+MySTONMirrorWriter >> writeFloat: float [
 	writeStream print: float
 ]
 
 { #category : #writing }
-MySTONWriter >> writeFraction: fraction [
+MySTONMirrorWriter >> writeFraction: fraction [
 	jsonMode
 		ifTrue: [ self writeFloat: fraction asFloat ]
 		ifFalse: [ writeStream
@@ -400,31 +400,31 @@ MySTONWriter >> writeFraction: fraction [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeInteger: integer [
+MySTONMirrorWriter >> writeInteger: integer [
 	writeStream print: integer
 ]
 
 { #category : #writing }
-MySTONWriter >> writeList: collection [
+MySTONMirrorWriter >> writeList: collection [
 	self with: collection do: [ 
 		self encodeList: collection ]
 ]
 
 { #category : #writing }
-MySTONWriter >> writeMap: hashedCollection [
+MySTONMirrorWriter >> writeMap: hashedCollection [
 	self with: hashedCollection do: [ 
 		self encodeMap: hashedCollection ]
 ]
 
 { #category : #writing }
-MySTONWriter >> writeNull [
+MySTONMirrorWriter >> writeNull [
 	jsonMode
 		ifTrue: [ writeStream nextPutAll: 'null' ]
 		ifFalse: [ writeStream print: nil ]
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: anObject [
+MySTONMirrorWriter >> writeObject: anObject [
 	| instanceVariableNames mirror |
 	mirror := mirrorFactory on: anObject.
 	(instanceVariableNames := mirror mAllInstanceVariableNames ) isEmpty
@@ -442,7 +442,7 @@ MySTONWriter >> writeObject: anObject [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: anObject do: block [
+MySTONMirrorWriter >> writeObject: anObject do: block [
 	(jsonMode and: [ anObject class ~= STON listClass and: [ anObject class ~= STON mapClass ] ])
 		ifTrue: [ self error: 'wrong object class for JSON mode' ].
 	self with: anObject do: [
@@ -454,7 +454,7 @@ MySTONWriter >> writeObject: anObject do: block [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: object listSingleton: element [
+MySTONMirrorWriter >> writeObject: object listSingleton: element [
 	self writeObject: object do: [
 		writeStream nextPut: $[.
 		self 
@@ -465,7 +465,7 @@ MySTONWriter >> writeObject: object listSingleton: element [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: anObject named: stonName do: block [
+MySTONMirrorWriter >> writeObject: anObject named: stonName do: block [
 	(jsonMode and: [ anObject class ~= STON listClass and: [ anObject class ~= STON mapClass ] ])
 		ifTrue: [ self error: 'wrong object class for JSON mode' ].
 	self with: anObject do: [
@@ -475,7 +475,7 @@ MySTONWriter >> writeObject: anObject named: stonName do: block [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: object named: stonName listSingleton: element [
+MySTONMirrorWriter >> writeObject: object named: stonName listSingleton: element [
 	self writeObject: object named: stonName do: [
 		writeStream nextPut: $[.
 		self 
@@ -486,7 +486,7 @@ MySTONWriter >> writeObject: object named: stonName listSingleton: element [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: object streamList: block [
+MySTONMirrorWriter >> writeObject: object streamList: block [
 	self writeObject: object do: [ | listWriter |
 		listWriter := STONListWriter on: self.
 		writeStream nextPut: $[.
@@ -498,7 +498,7 @@ MySTONWriter >> writeObject: object streamList: block [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: object streamMap: block [
+MySTONMirrorWriter >> writeObject: object streamMap: block [
 	self writeObject: object do: [ | mapWriter |
 		mapWriter := STONMapWriter on: self.
 		writeStream nextPut: ${.
@@ -510,7 +510,7 @@ MySTONWriter >> writeObject: object streamMap: block [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeObject: object streamShortList: block [
+MySTONMirrorWriter >> writeObject: object streamShortList: block [
 	self writeObject: object do: [ | listWriter |
 		listWriter := STONShortListWriter on: self.
 		writeStream nextPut: $[.
@@ -522,14 +522,14 @@ MySTONWriter >> writeObject: object streamShortList: block [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeReference: index [
+MySTONMirrorWriter >> writeReference: index [
 	writeStream
 		nextPut: $@;
 		print: index
 ]
 
 { #category : #writing }
-MySTONWriter >> writeScaledDecimal: scaledDecimal [
+MySTONMirrorWriter >> writeScaledDecimal: scaledDecimal [
 	jsonMode
 		ifTrue: [ self writeFloat: scaledDecimal asFloat ]
 		ifFalse: [ writeStream
@@ -541,12 +541,12 @@ MySTONWriter >> writeScaledDecimal: scaledDecimal [
 ]
 
 { #category : #writing }
-MySTONWriter >> writeString: string [
+MySTONMirrorWriter >> writeString: string [
 	self encodeString: string
 ]
 
 { #category : #writing }
-MySTONWriter >> writeSymbol: symbol [
+MySTONMirrorWriter >> writeSymbol: symbol [
 	jsonMode
 		ifTrue: [
 			self writeString: symbol ]
@@ -560,7 +560,7 @@ MySTONWriter >> writeSymbol: symbol [
 ]
 
 { #category : #private }
-MySTONWriter >> writeableStonCharacters [
+MySTONMirrorWriter >> writeableStonCharacters [
 	^ self stonCharacters == STONCharacters
 		ifTrue: [ stonCharacters := stonCharacters copy ]
 		ifFalse: [ stonCharacters ]

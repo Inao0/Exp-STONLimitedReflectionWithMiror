@@ -4,7 +4,7 @@ Class {
 	#instVars : [
 		'friends'
 	],
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #accessing }

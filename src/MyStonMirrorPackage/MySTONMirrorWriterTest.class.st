@@ -1,39 +1,39 @@
 Class {
-	#name : #MySTONWriterTest,
+	#name : #MySTONMirrorWriterTest,
 	#superclass : #TestCase,
-	#category : #MyStonPackage
+	#category : #MyStonMirrorPackage
 }
 
 { #category : #private }
-MySTONWriterTest >> serialize: anObject [
+MySTONMirrorWriterTest >> serialize: anObject [
 	^ String streamContents: [ :stream |
-		MySTONWriter new 
+		MySTONMirrorWriter new 
 			on: stream;
 			nextPut: anObject ]
 ]
 
 { #category : #private }
-MySTONWriterTest >> serialize: anObject withMirrorFactory: aMirrorFactory [
+MySTONMirrorWriterTest >> serialize: anObject withMirrorFactory: aMirrorFactory [
 	^ String streamContents: [ :stream |
-		MySTONWriter new 
+		MySTONMirrorWriter new 
 			on: stream;
 			mirrorFactory: aMirrorFactory;
 			nextPut: anObject ]
 ]
 
 { #category : #private }
-MySTONWriterTest >> serializeAsciiOnly: anObject [
+MySTONMirrorWriterTest >> serializeAsciiOnly: anObject [
 	^ String streamContents: [ :stream |
-		MySTONWriter new  
+		MySTONMirrorWriter new  
 			on: stream;
 			asciiOnly: true;
 			nextPut: anObject ]
 ]
 
 { #category : #private }
-MySTONWriterTest >> serializeJson: anObject [
+MySTONMirrorWriterTest >> serializeJson: anObject [
 	^ String streamContents: [ :stream |
-		MySTONWriter new
+		MySTONMirrorWriter new
 			jsonMode: true;
 			referencePolicy: #error; 
 			on: stream; 
@@ -41,9 +41,9 @@ MySTONWriterTest >> serializeJson: anObject [
 ]
 
 { #category : #private }
-MySTONWriterTest >> serializeJson: anObject withMirrorFactory: aMirrorFactory [
+MySTONMirrorWriterTest >> serializeJson: anObject withMirrorFactory: aMirrorFactory [
 	^ String streamContents: [ :stream |
-		MySTONWriter new
+		MySTONMirrorWriter new
 			jsonMode: true;
 			referencePolicy: #error; 
 			on: stream; 
@@ -52,16 +52,16 @@ MySTONWriterTest >> serializeJson: anObject withMirrorFactory: aMirrorFactory [
 ]
 
 { #category : #private }
-MySTONWriterTest >> serializePretty: anObject [
+MySTONMirrorWriterTest >> serializePretty: anObject [
 	^ String streamContents: [ :stream |
-		MySTONWriter new  
+		MySTONMirrorWriter new  
 			on: stream; 
 			prettyPrint: true;
 			nextPut: anObject ]
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testAssociation [
+MySTONMirrorWriterTest >> testAssociation [
 	self assert: (self serialize: 'foo' -> 1) equals: '''foo'':1'.
 	self assert: (self serialize: #bar -> 2) equals: '#bar:2'.
 	self assert: (self serialize: 'foo bar' -> #ok) equals: '''foo bar'':#ok'.
@@ -69,7 +69,7 @@ MySTONWriterTest >> testAssociation [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testBag [
+MySTONMirrorWriterTest >> testBag [
 	self 
 		assert: (self serialize: (Bag withAll: #(a a)))
 		equals: 'Bag{#a:2}'.
@@ -79,23 +79,23 @@ MySTONWriterTest >> testBag [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testBoolean [
+MySTONMirrorWriterTest >> testBoolean [
 	self assert: (self serialize: true) equals: 'true'.
 	self assert: (self serialize: false) equals: 'false'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testByteArray [
+MySTONMirrorWriterTest >> testByteArray [
 	self assert: (self serialize: #(1 2 3) asByteArray) equals: 'ByteArray[''010203'']'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testClass [
+MySTONMirrorWriterTest >> testClass [
 	self assert: (self serialize: Point) equals: 'Class[#Point]'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testColor [
+MySTONMirrorWriterTest >> testColor [
 	self 
 		assert: (self serialize: Color red) 
 		equals: 'Color[#red]'.
@@ -108,10 +108,10 @@ MySTONWriterTest >> testColor [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testCustomNewline [
+MySTONMirrorWriterTest >> testCustomNewline [
 	| output |
 	output := String streamContents: [ :out |
-		(MySTONWriter new on: out)
+		(MySTONMirrorWriter new on: out)
 			newLine: String lf;
 			prettyPrint: true;
 			nextPut: #( 1 ) ].
@@ -121,7 +121,7 @@ MySTONWriterTest >> testCustomNewline [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testDate [
+MySTONMirrorWriterTest >> testDate [
 	| date |
 	date := (Date year: 2012 month: 1 day: 1) translateToUTC.
 	self assert: (self serialize: date) equals: 'Date[''2012-01-01Z'']'.
@@ -130,7 +130,7 @@ MySTONWriterTest >> testDate [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testDateAndTime [
+MySTONMirrorWriterTest >> testDateAndTime [
 	| dateAndTime |
 	dateAndTime := DateAndTime
 		year: 2012
@@ -144,7 +144,7 @@ MySTONWriterTest >> testDateAndTime [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testDictionary [
+MySTONMirrorWriterTest >> testDictionary [
 	| collection |
 	collection := STON mapClass new
 		at: 1 put: 1;
@@ -155,14 +155,14 @@ MySTONWriterTest >> testDictionary [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testDictionaryWithComplexKeys [
+MySTONMirrorWriterTest >> testDictionaryWithComplexKeys [
 	| collection |
 	collection := STON mapClass new at: true put: 1; at: #(foo) put: 2; yourself.
 	self assert: (#('{true:1,[#foo]:2}' '{[#foo]:2,true:1}') includes: (self serialize: collection))
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testDiskFile [
+MySTONMirrorWriterTest >> testDiskFile [
 	self assert: (self serialize: 'foo.txt' asFileReference) equals: 'FILE[''foo.txt'']'.
 	self assert: (self serialize: '/tmp/foo.txt' asFileReference) equals: 'FILE[''/tmp/foo.txt'']'.
 	self assert: (self serialize: 'tmp/foo.txt' asFileReference) equals: 'FILE[''tmp/foo.txt'']'.
@@ -171,7 +171,7 @@ MySTONWriterTest >> testDiskFile [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testDoubleQuotedString [
+MySTONMirrorWriterTest >> testDoubleQuotedString [
 	| string |
 	self assert: (self serializeJson: 'foo') equals: '"foo"'.
 	self assert: (self serializeJson: 'FOO') equals: '"FOO"'.
@@ -182,17 +182,17 @@ MySTONWriterTest >> testDoubleQuotedString [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testEmptyArrayPretty [
+MySTONMirrorWriterTest >> testEmptyArrayPretty [
 	self assert: (self serializePretty: STON listClass new) equals: '[ ]'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testEmptyDictionaryPretty [
+MySTONMirrorWriterTest >> testEmptyDictionaryPretty [
 	self assert: (self serializePretty: STON mapClass new) equals: '{ }'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testFloat [
+MySTONMirrorWriterTest >> testFloat [
 	self assert: (self serialize: 1.5) equals: '1.5'.
 	self assert: (self serialize: 0.0) equals: '0.0'.
 	self assert: (self serialize: -1.5) equals: '-1.5'.
@@ -204,7 +204,7 @@ MySTONWriterTest >> testFloat [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testFraction [
+MySTONMirrorWriterTest >> testFraction [
 	self assert: (self serialize: 1/3) equals: '1/3'.
 	self assert: (self serialize: -1/3) equals: '-1/3'.
 	self assert: (self serialize: 10/100) equals: '1/10'.
@@ -214,7 +214,7 @@ MySTONWriterTest >> testFraction [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testIdentityDictionary [
+MySTONMirrorWriterTest >> testIdentityDictionary [
 	| collection |
 	collection := IdentityDictionary new
 		at: 1 put: 1;
@@ -225,7 +225,7 @@ MySTONWriterTest >> testIdentityDictionary [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testInteger [
+MySTONMirrorWriterTest >> testInteger [
 	self assert: (self serialize: 1) equals: '1'.
 	self assert: (self serialize: 0) equals: '0'.
 	self assert: (self serialize: -1) equals: '-1'.
@@ -234,22 +234,22 @@ MySTONWriterTest >> testInteger [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testIsSimpleSymbol [
-	self assert: (MySTONWriter new  isSimpleSymbol: #foo).
-	self assert: (MySTONWriter new  isSimpleSymbol: #az).
-	self assert: (MySTONWriter new  isSimpleSymbol: #AZ).
-	self assert: (MySTONWriter new isSimpleSymbol: #N0123456789).
-	self assert: (MySTONWriter new isSimpleSymbol: #foo123).
-	self assert: (MySTONWriter new  isSimpleSymbol: #'Foo/Bar').
-	self assert: (MySTONWriter new  isSimpleSymbol: #'Foo.Bar').
-	self assert: (MySTONWriter new  isSimpleSymbol: #'Foo-Bar').
-	self assert: (MySTONWriter new  isSimpleSymbol: #'Foo_Bar').
-	self assert: (MySTONWriter new  isSimpleSymbol: #foo).
-	self deny: (MySTONWriter new  isSimpleSymbol: #'#^&$%')
+MySTONMirrorWriterTest >> testIsSimpleSymbol [
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #foo).
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #az).
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #AZ).
+	self assert: (MySTONMirrorWriter new isSimpleSymbol: #N0123456789).
+	self assert: (MySTONMirrorWriter new isSimpleSymbol: #foo123).
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #'Foo/Bar').
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #'Foo.Bar').
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #'Foo-Bar').
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #'Foo_Bar').
+	self assert: (MySTONMirrorWriter new  isSimpleSymbol: #foo).
+	self deny: (MySTONMirrorWriter new  isSimpleSymbol: #'#^&$%')
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testKeepingNewLines [
+MySTONMirrorWriterTest >> testKeepingNewLines [
 	| input result output |
 	input := 'line ending with CR', String cr, 
 		'line ending with LF', String lf, 
@@ -258,25 +258,25 @@ MySTONWriterTest >> testKeepingNewLines [
 		'line ending with LF', String crlf, 
 		'line ending with CRLF', String crlf, ''''.
 	result := String streamContents: [ :out |
-		(MySTONWriter new  on: out) newLine: String crlf; keepNewLines: true; nextPut: input ].
+		(MySTONMirrorWriter new  on: out) newLine: String crlf; keepNewLines: true; nextPut: input ].
 	self assert: result equals: output.
 	output := '''line ending with CR', String cr, 
 		'line ending with LF', String cr, 
 		'line ending with CRLF', String cr, ''''.
 	result := String streamContents: [ :out |
-		(MySTONWriter new  on: out) newLine: String cr; keepNewLines: true; nextPut: input ].
+		(MySTONMirrorWriter new  on: out) newLine: String cr; keepNewLines: true; nextPut: input ].
 	self assert: result equals: output
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testList [
+MySTONMirrorWriterTest >> testList [
 	self assert: (self serialize: (STON listClass withAll: #(1 2 3))) equals: '[1,2,3]'.
 	self assert: (self serialize: STON listClass new) equals: '[]'.
 	self assert: (self serialize: (STON listClass withAll: {1 . -1 . 0 . #foo . 'a b c' . true . false . nil})) equals: '[1,-1,0,#foo,''a b c'',true,false,nil]'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testMap [
+MySTONMirrorWriterTest >> testMap [
 	| map |
 	(map := STON mapClass new)
 		at: #foo put: 1;
@@ -292,12 +292,12 @@ MySTONWriterTest >> testMap [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testMetaclass [
+MySTONMirrorWriterTest >> testMetaclass [
 	self assert: (self serialize: Point class) equals: 'Metaclass[#Point]'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testMimeType [
+MySTONMirrorWriterTest >> testMimeType [
 	self
 		assert: (self serialize: ZnMimeType applicationJson)
 		equals: 'MimeType[''application/json'']'.
@@ -307,28 +307,28 @@ MySTONWriterTest >> testMimeType [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testNil [
+MySTONMirrorWriterTest >> testNil [
 	self assert: (self serialize: nil) equals: 'nil'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testNonBMPCharacterEncoding [
+MySTONMirrorWriterTest >> testNonBMPCharacterEncoding [
 	"Characters not in the Basic Multilingual Plane are encoded as a UTF-16 surrogate pair"
 
 	| string json |
 	string := String with: 16r1D11E asCharacter. "MUSICAL SYMBOL G CLEF"
 	json := String streamContents: [ :out |
-		(MySTONWriter new  on: out) asciiOnly: true; nextPut: string ].
+		(MySTONMirrorWriter new  on: out) asciiOnly: true; nextPut: string ].
 	self assert: json equals: '''\uD834\uDD1E'''
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testNull [
+MySTONMirrorWriterTest >> testNull [
 	self assert: (self serializeJson: nil) equals: 'null'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testOrderedCollection [
+MySTONMirrorWriterTest >> testOrderedCollection [
 	| collection |
 	collection := OrderedCollection with: 1 with: 2 with: 3.
 	self assert: (self serialize: collection) equals: 'OrderedCollection[1,2,3]'.
@@ -336,12 +336,12 @@ MySTONWriterTest >> testOrderedCollection [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testPoint [
+MySTONMirrorWriterTest >> testPoint [
 	self assert: (self serialize: 1 @ 2) equals: 'Point[1,2]'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testReferenceCycle [
+MySTONMirrorWriterTest >> testReferenceCycle [
 	| array |
 	array := STON listClass with: 1 with: nil.
 	array at: 2 put: array.
@@ -349,7 +349,7 @@ MySTONWriterTest >> testReferenceCycle [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testReferenceSharing [
+MySTONMirrorWriterTest >> testReferenceSharing [
 	| array one |
 	one := {#one}.
 	array := STON listClass with: one with: one with: one.
@@ -357,11 +357,11 @@ MySTONWriterTest >> testReferenceSharing [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testReferenceSharingError [
+MySTONMirrorWriterTest >> testReferenceSharingError [
 	| serializer array one |
 	serializer := [ :object | 
 		String streamContents: [ :stream |
-			MySTONWriter new 
+			MySTONMirrorWriter new 
 				on: stream;
 				referencePolicy: #error; 
 				nextPut: object ] ].
@@ -373,12 +373,12 @@ MySTONWriterTest >> testReferenceSharingError [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testReferenceSharingIgnore [
+MySTONMirrorWriterTest >> testReferenceSharingIgnore [
 	| serializer array one |
 	serializer := [ :object | 
 	String
 		streamContents: [ :stream | 
-			MySTONWriter new 
+			MySTONMirrorWriter new 
 				on: stream;
 				referencePolicy: #ignore;
 				nextPut: object ] ].
@@ -388,14 +388,14 @@ MySTONWriterTest >> testReferenceSharingIgnore [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testRestrictedClassesInJsonMode [
+MySTONMirrorWriterTest >> testRestrictedClassesInJsonMode [
 	self should: [ self serializeJson: 1@2 ] raise: STONWriterError.
 	self should: [ self serializeJson: #foo->100 ] raise: STONWriterError.
 	self should: [ self serializeJson: STONTestUser dummy withMirrorFactory: ReflectionMirror ] raise: STONWriterError.
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testScaledDecimal [
+MySTONMirrorWriterTest >> testScaledDecimal [
 	self assert: (self serialize: 1/3s2) equals: '1/3s2'.
 	self assert: (self serialize: -1/3s2) equals: '-1/3s2'.
 	self assert: (self serialize: 1/3s10) equals: '1/3s10'.
@@ -403,7 +403,7 @@ MySTONWriterTest >> testScaledDecimal [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testString [
+MySTONMirrorWriterTest >> testString [
 	| string |
 	self assert: (self serialize: 'foo') equals: '''foo'''.
 	self assert: (self serialize: 'FOO') equals: '''FOO'''.
@@ -414,7 +414,7 @@ MySTONWriterTest >> testString [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testSymbol [
+MySTONMirrorWriterTest >> testSymbol [
 	self assert: (self serialize: #foo) equals: '#foo'.
 	self assert: (self serialize: #FOO) equals: '#FOO'.
 	self assert: (self serialize: #bytes) equals: '#bytes'.
@@ -427,13 +427,13 @@ MySTONWriterTest >> testSymbol [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testSymbolAsString [
+MySTONMirrorWriterTest >> testSymbolAsString [
 	self assert: (self serializeJson: #foo) equals: '"foo"'.
 	self assert: (self serializeJson: #FOO) equals: '"FOO"'
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testTime [
+MySTONMirrorWriterTest >> testTime [
 	| time |
 	time := Time hour: 6 minute: 30 second: 15.
 	self assert: (self serialize: time) equals: 'Time[''06:30:15'']'.
@@ -442,7 +442,7 @@ MySTONWriterTest >> testTime [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testURL [
+MySTONMirrorWriterTest >> testURL [
 	self
 		assert: (self serialize: 'https://pharo.org/files/pharo.png' asUrl)
 		equals: 'URL[''https://pharo.org/files/pharo.png'']'.
@@ -458,7 +458,7 @@ MySTONWriterTest >> testURL [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testUser [
+MySTONMirrorWriterTest >> testUser [
 	| user userWithFriends|
 	(user := STONTestUser new)
 		username: 'john@foo.com';
@@ -473,7 +473,7 @@ MySTONWriterTest >> testUser [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testUser2 [
+MySTONMirrorWriterTest >> testUser2 [
 	| user |
 	(user := STONTestUser2 new)
 		username: 'john@foo.com';
@@ -484,7 +484,7 @@ MySTONWriterTest >> testUser2 [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testUser3Nil [
+MySTONMirrorWriterTest >> testUser3Nil [
 	| user |
 	user := STONTestUser3 new.
 	self 
@@ -493,7 +493,7 @@ MySTONWriterTest >> testUser3Nil [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testUser4 [
+MySTONMirrorWriterTest >> testUser4 [
 	| user userWithFriends|
 	(user := STONTestUser new)
 		username: 'john@foo.com';
@@ -508,7 +508,7 @@ MySTONWriterTest >> testUser4 [
 ]
 
 { #category : #tests }
-MySTONWriterTest >> testUserNil [
+MySTONMirrorWriterTest >> testUserNil [
 	| user |
 	user := STONTestUser new.
 	self assert: (self serialize: user  withMirrorFactory: ReflectionMirror) equals: 'TestUser{#enabled:true}'
